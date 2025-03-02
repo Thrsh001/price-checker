@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from Engine.Context.ScraperContext import ScraperContext
+from typing import Dict, Any
 
 
 class ScrapingStrategy(ABC):
 
     @abstractmethod
-    def scrape(self, url: str, product: str):
+    def scrape(self, url: str, product: str) -> Dict[str, Any]:
         pass

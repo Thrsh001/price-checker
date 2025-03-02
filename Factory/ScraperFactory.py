@@ -8,9 +8,9 @@ class ScraperFactory:
     @staticmethod
     def create_scraper(strategy_name) -> ScraperContext:
         if strategy_name == "playwright":
-            return ScraperContext(PlaywrightScraper())
+            return PlaywrightScraper()
         elif strategy_name == "html":
-            return ScraperContext(HtmlScraper())
+            return HtmlScraper()
         elif strategy_name == "api":
-            return ScraperContext(ApiScraper())
+            return ApiScraper()
         raise ValueError(f"Strategy {strategy_name} not implemented.")
