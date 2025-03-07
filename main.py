@@ -12,35 +12,54 @@ def main():
     db = DependencyInjector.get_db()
     logger = DependencyInjector.get_logger()
 
-    shop = db.get_shop(args.shop)
-    if not shop:
+    if not db.does_shop_exists(args.shop):
         logger.log(f"Shop {args.shop} not found in database.")
         return
 
-    context = ScraperContext(args.product)
-    context.set_shop(shop)\
-           .set_scraper(DependencyInjector.get_scraper(shop["strategy"]))\
-           .set_url(f"{shop['url']}{args.product}")
+    # Retrieve shop from database
+    shop_name: str = args.shop
+    shop = db.get_shop(shop_name)
 
-    logger.log(f"Starting scrape for {context.get_product_name()} from {args.shop}...")
+    print(shop.strategy)
+
+    if shop:
+        scraper = DependencyInjector.get_scraper(shop.strategy)
+    else:
+        raise ValueError ("Shop not found!")
+
+    # Build URL for scraping
+    url: str = db.get_url(shop_name, args.product)
+
+    # Create scraper context
+    context = ScraperContext(args.product, url, shop, scraper)
+
+    logger.log(f"Starting scrape for {args.product} from {shop_name}...")
 
     try:
+        # Retrieve scraper and perform scraping
         scraper = context.get_scraper()
         if not scraper:
             logger.log("No scraper configured in context")
             return
 
-        product_data = scraper.scrape(context.get_url(), context.get_product_name())
+        product_data = scraper.scrape(
+            context.get_url(),
+            context.get_product_name()
+        )
 
         context.set_product_data(product_data)
+
     except Exception as e:
         logger.log(f"An error occurred while trying to scrape: {str(e)}")
         return
 
+    # Create a ProductDTO with the product data
     product_dto = DependencyInjector.get_product_dto(
-        product_data["name"], product_data["price"]
+        product_data["name"], product_data["price"], shop_name
     )
-    db.save({"name": product_dto.name, "price": product_dto.price})
+    # Save the product record to the database
+    db.save_record(product_dto.name, product_dto.price, shop_name)
+
     logger.log("Scraping complete.")
 
 

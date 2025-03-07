@@ -17,11 +17,10 @@ class PlaywrightScraper(ScrapingStrategy):
             page.goto(url)
             # time.sleep(10)
 
-            price = page.query_selector(".product-price").inner_text()
+            price: str = page.query_selector(".product-price").inner_text()
 
             browser.close()
             return {
                 "name": product,
                 "price": price
                 }
-        
