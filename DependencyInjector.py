@@ -1,6 +1,6 @@
 from Engine.Context.ScrapingStrategy import ScrapingStrategy
 from Factory.ScraperFactory import ScraperFactory
-from Infrastructure.Database import Database
+from Infrastructure.DatabaseClient import DatabaseClient
 from Service.Logger import Logger
 from DTO.ProductDTO import ProductDTO
 
@@ -12,8 +12,8 @@ class DependencyInjector:
         return ScraperFactory.create_scraper(strategy)
 
     @staticmethod
-    def get_db() -> Database:
-        return Database()
+    def get_db() -> DatabaseClient:
+        return DatabaseClient()
 
     @staticmethod
     def get_logger() -> Logger:

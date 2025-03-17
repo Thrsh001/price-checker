@@ -12,7 +12,7 @@ def main():
     db = DependencyInjector.get_db()
     logger = DependencyInjector.get_logger()
 
-    if not db.does_shop_exists(args.shop):
+    if not db.does_shop_exist(args.shop):
         logger.log(f"Shop {args.shop} not found in database.")
         return
 

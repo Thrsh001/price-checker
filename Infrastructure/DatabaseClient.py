@@ -1,20 +1,37 @@
 from typing import Optional
 import os
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from Infrastructure.Models import Shop, Product, Base
 
-# Database connection
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///Storage/data.db")  # Change to MySQL URL if needed
-engine = create_engine(DATABASE_URL, echo=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+load_dotenv()  # Load environment variables from .env
 
 
-class Database:
+class SingletonClass(object):
+  instance = None
+
+  def __new__(cls):
+    if not cls.instance:
+      cls.instance = super(SingletonClass, cls).__new__(cls)
+    return cls.instance
+
+
+class DatabaseClient(SingletonClass):
     def __init__(self):
-        self.db = SessionLocal()
+        # Database connection
+        database_url = os.getenv("DATABASE_URL")
+        engine = create_engine(database_url, echo=True)
+
+        # Create tables if they don't exist
+        Base.metadata.create_all(bind=engine)
+
+        sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        self.db = sessionLocal()
+
 
     def save_record(self, name: str, price: float, shop_name: str) -> None:
         """Save product info into the database."""
@@ -73,7 +90,7 @@ class Database:
         """Retrieve a shop by name."""
         return self.db.query(Shop).filter_by(name=shop_name).first()
 
-    def does_shop_exists(self, shop_name: str) -> Optional[Shop]:
+    def does_shop_exist(self, shop_name: str) -> Optional[Shop]:
         """Check if a shop exists."""
         return self.db.query(Shop).filter_by(name=shop_name).first() is not None
 
@@ -88,6 +105,3 @@ class Database:
         """Close the database session."""
         self.db.close()
 
-
-# Create tables if they don't exist
-Base.metadata.create_all(bind=engine)
